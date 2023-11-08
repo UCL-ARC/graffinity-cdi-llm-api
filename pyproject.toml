@@ -19,6 +19,10 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
+    "fastapi[all]>=0.104.1,<0.105.0",
+    "gunicorn>=21.2.0,<21.3.0",
+    "loguru>=0.7.2",
+    "uvicorn>=0.24.0,<0.25.0",
 ]
 description = "API for converting user searches to robust LLM prompts and returning a response."
 dynamic = [
@@ -35,6 +39,11 @@ optional-dependencies = {dev = [
     "ruff",
     "tox>=4",
     "twine",
+], test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+    "tox",
 ]}
 readme = "README.md"
 requires-python = ">=3.11"
@@ -43,7 +52,9 @@ urls.homepage = "https://github.com/UCL-ARC/graffinity-cdi-llm-api/"
 
 [tool.coverage]
 report = {skip_covered = true, sort = "cover"}
-run = {branch = true, parallel = true, source = [
+run = {branch = true, omit = [
+    "src/llm_api/_version.py",
+], parallel = true, source = [
     "llm-api",
 ]}
 paths.source = [
@@ -106,7 +117,7 @@ legacy_tox_ini = """
 
     [testenv]
     commands =
-        pytest --cov --cov-report=xml
+        pytest . --cov=llm_api --cov-report=xml
     deps =
         pytest
         pytest-cov
