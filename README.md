@@ -103,6 +103,22 @@ again from the root of the repository.
 
 To contribute to the project as a developer, use the following as a guide. These are based on ARC Collaborations [group practices](https://github.com/UCL-ARC/research-software-documentation/blob/main/processes/programming_projects/group_practices.md) and [code review documentation](https://github.com/UCL-ARC/research-software-documentation/blob/main/processes/programming_projects/review.md).
 
+### Developer install
+
+Install the project and development dependencies via `pip` with
+
+```bash
+pip install -e ".[dev]"
+```
+
+Install pre-commit hooks with
+
+```bash
+pre-commit install
+```
+
+Future `git commit` operations will now run pre-commit hooks to ensure code style and typing conventions are followed. _Please remember to do this!_
+
 ### Python standards we follow
 
 To make explicit some of the potentially implicit:
