@@ -22,6 +22,7 @@ dependencies = [
     "fastapi[all]>=0.104.1,<0.105.0",
     "gunicorn>=21.2.0,<21.3.0",
     "loguru>=0.7.2",
+    "openai>=1.2.0,<1.3.0",
     "uvicorn>=0.24.0,<0.25.0",
 ]
 description = "API for converting user searches to robust LLM prompts and returning a response."
@@ -51,7 +52,7 @@ license.file = "LICENSE.md"
 urls.homepage = "https://github.com/UCL-ARC/graffinity-cdi-llm-api/"
 
 [tool.coverage]
-report = {skip_covered = true, sort = "cover"}
+report = {skip_covered = false, sort = "cover"}
 run = {branch = true, omit = [
     "src/llm_api/_version.py",
 ], parallel = true, source = [
@@ -64,6 +65,9 @@ paths.source = [
 
 [tool.mypy]
 explicit_package_bases = true
+mypy_path = "./src/"
+warn_redundant_casts = true
+warn_unused_ignores = true
 
 [tool.pytest.ini_options]
 addopts = "--color=yes -v"
@@ -72,9 +76,11 @@ testpaths = [
 ]
 
 [tool.ruff]
+extend-exclude = ["tests"]
 fix = true
 force-exclude = true
 ignore = [
+    "ANN101", # Missing type annotation for `self` in method
     "COM812", # trailing commas (ruff-format recommended)
     "D203", # no-blank-line-before-class
     "D212", # multi-line-summary-first-line
@@ -82,6 +88,7 @@ ignore = [
     "D417", # argument description in docstring (unreliable)
     "ISC001", # simplify implicit str concatenation (ruff-format recommended)
 ]
+line-length = 100
 per-file-ignores = {"tests*" = [
     "INP001",
     "S101",
@@ -121,6 +128,7 @@ legacy_tox_ini = """
     deps =
         pytest
         pytest-cov
+        pytest-mock
 
     [tox]
     env_list =
