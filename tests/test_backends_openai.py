@@ -41,8 +41,6 @@ async def test_call_model_success(mocker, mock_settings):
     caller = OpenaiCaller(mock_settings)
     test_model = "my-test-gpt-model"
 
-    #mocked_client_call = mocker.patch.object(caller.client.chat.completions, "create")
-
     expected_example_response_string = '{\n    "name": "William Shakespeare",\n \
         "occupation": "Playwright, poet, actor"}'
 
@@ -83,7 +81,8 @@ async def test_call_model_success(mocker, mock_settings):
     assert response == json.loads(expected_example_response_string)
 
 
-def test_call_model_failure_api_connection_error(mocker, mock_settings):
+@pytest.mark.asyncio
+async def test_call_model_failure_api_connection_error(mocker, mock_settings):
     caller = OpenaiCaller(mock_settings)
     test_model = "my-test-gpt-model"
 
@@ -101,12 +100,12 @@ def test_call_model_failure_api_connection_error(mocker, mock_settings):
     ]
 
     with pytest.raises(OpenaiModelCallError) as exception:
-        caller.call_model(test_model, test_prompt)
-
+        await caller.call_model(test_model, test_prompt)
     assert str(exception.value) == expected_error_message
 
 
-def test_call_model_failure_rate_limit_error(mocker, mock_settings):
+@pytest.mark.asyncio
+async def test_call_model_failure_rate_limit_error(mocker, mock_settings):
     caller = OpenaiCaller(mock_settings)
     test_model = "my-test-gpt-model"
 
@@ -126,12 +125,13 @@ def test_call_model_failure_rate_limit_error(mocker, mock_settings):
     ]
 
     with pytest.raises(OpenaiModelCallError) as exception:
-        caller.call_model(test_model, test_prompt)
+        await caller.call_model(test_model, test_prompt)
 
     assert str(exception.value) == expected_error_message
 
 
-def test_call_model_failure_api_error(mocker, mock_settings):
+@pytest.mark.asyncio
+async def test_call_model_failure_api_error(mocker, mock_settings):
     caller = OpenaiCaller(mock_settings)
     test_model = "my-test-gpt-model"
 
@@ -152,6 +152,6 @@ def test_call_model_failure_api_error(mocker, mock_settings):
     ]
 
     with pytest.raises(OpenaiModelCallError) as exception:
-        caller.call_model(test_model, test_prompt)
+        await caller.call_model(test_model, test_prompt)
 
     assert str(exception.value) == expected_error_message
