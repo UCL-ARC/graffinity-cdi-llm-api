@@ -59,16 +59,35 @@ class OpenaiCaller:
                 "content": "Users will provide you with a search, as a string. \
                     You should examine this string and determine entities directly \
                     from the string in addition to any other entities not found in \
-                    the string that may be relevant to the search.",
+                    the string that may be relevant to the search. \
+                    Try to find at least 5 relevant entities in each case, but no \
+                    more than 10. Try to keep entities specific to the search. \
+                    If you are unsure whether an entity is connected to the search, \
+                    do not include it.",
             },
             {
                 "role": "system",
-                "content": "You should provide your response as valid JSON.",
+                "content": "You should provide your response as valid JSON, in a \
+                format matching the following example. The example will be preceded and \
+                followed by three backticks. Dictionary keys should be taken literally, but \
+                dictionary values are indicative. \
+                ```\
+                    {'entities': [ \
+                        {'uri': 'entity name', 'description': 'entity description', \
+                        'wikipedia_url': 'entity wikipedia url'} \
+                    ]},\
+                    'connections': [\
+                    {'from': 'uri'\
+                    'to': 'uri'\
+                    'label': 'label describing entity-entity relationship\
+                    }]\
+                    }\
+                ```",
             },
             {"role": "user", "content": f"{user_input}"},
         ]
 
-    async def call_model(self, openai_model: str, prompt: list[dict]) -> dict:
+    async def call_model(self, openai_model: str, prompt: list[dict]) -> dict[str, str]:
         """
         Call the external Openai model specified with a defined prompt.
 

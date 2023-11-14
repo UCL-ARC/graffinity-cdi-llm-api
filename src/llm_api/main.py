@@ -6,6 +6,8 @@ import uvicorn
 from fastapi import FastAPI
 from loguru import logger
 
+from llm_api.routers import model_calling
+
 logger.info("API starting")
 
 description = """
@@ -19,6 +21,8 @@ app = FastAPI(
     description=description,
     version=metadata.version("llm-api"),
 )
+
+app.include_router(model_calling.router)
 
 
 @app.get("/ping")
