@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 import openai
@@ -7,6 +8,7 @@ from openai.types.chat.chat_completion_message import ChatCompletionMessage
 
 from llm_api.backends.openai import OpenaiCaller, OpenaiModelCallError
 
+pytest_plugins = ('pytest_asyncio',)
 
 def test_openai_caller_load_settings(mocker, mock_settings):
     mocked_openai_client = mocker.patch(
@@ -34,16 +36,18 @@ def test_generate_openai_prompt_success():
     assert prompt_output[-1] == expected_output
 
 
-def test_call_model_success(mocker, mock_settings):
+@pytest.mark.asyncio
+async def test_call_model_success(mocker, mock_settings):
     caller = OpenaiCaller(mock_settings)
     test_model = "my-test-gpt-model"
 
-    mocked_client_call = mocker.patch.object(caller.client.chat.completions, "create")
+    #mocked_client_call = mocker.patch.object(caller.client.chat.completions, "create")
 
     expected_example_response_string = '{\n    "name": "William Shakespeare",\n \
         "occupation": "Playwright, poet, actor"}'
 
-    mocked_client_call.return_value = ChatCompletion(
+    future = asyncio.Future()
+    future.set_result(ChatCompletion(
         id="test-id",
         choices=[
             Choice(
@@ -61,6 +65,12 @@ def test_call_model_success(mocker, mock_settings):
         model=test_model,
         object="chat.completion",
     )
+    )
+    mocker.patch.object(
+        caller.client.chat.completions,
+        "create",
+        return_value = future
+    )
 
     test_prompt = [
         {"role": "system", "content": "You are a test system"},
@@ -68,7 +78,7 @@ def test_call_model_success(mocker, mock_settings):
         {"role": "user", "content": "Who is Shakespeare?"},
     ]
 
-    response = caller.call_model(test_model, test_prompt)
+    response = await caller.call_model(test_model, test_prompt)
 
     assert response == json.loads(expected_example_response_string)
 

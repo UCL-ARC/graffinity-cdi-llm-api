@@ -2,7 +2,7 @@
 import json
 
 import openai
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from llm_api.config import Settings
 
@@ -25,14 +25,14 @@ class OpenaiCaller:
 
         self.client = self.get_client()
 
-    def get_client(self) -> OpenAI:
+    def get_client(self) -> AsyncOpenAI:
         """
-        Retrieve an OpenAI client object.
+        Retrieve an asynchronous OpenAI client object.
 
         Returns
             OpenAI: OpenAI client object
         """
-        return OpenAI(api_key=self.settings.openai_api_key.get_secret_value())
+        return AsyncOpenAI(api_key=self.settings.openai_api_key.get_secret_value())
 
     @staticmethod
     def generate_openai_prompt(user_input: str) -> list[dict[str, str]]:
@@ -68,7 +68,7 @@ class OpenaiCaller:
             {"role": "user", "content": f"{user_input}"},
         ]
 
-    def call_model(self, openai_model: str, prompt: list[dict]) -> dict:
+    async def call_model(self, openai_model: str, prompt: list[dict]) -> dict:
         """
         Call the external Openai model specified with a defined prompt.
 
@@ -85,7 +85,7 @@ class OpenaiCaller:
             dict: Dictionary created from JSON response
         """
         try:
-            response = self.client.chat.completions.create(
+            response = await self.client.chat.completions.create(
                 model=openai_model,
                 messages=prompt,
                 response_format={"type": "json_object"},
