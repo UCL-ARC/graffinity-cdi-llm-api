@@ -31,7 +31,6 @@ async def ping() -> dict[str, str]:
     Provide a basic API route for testing purposes.
 
     Returns
-    -------
         dict[str, str]: Dictionary containing response
     """
     return {"ping": "pong"}
