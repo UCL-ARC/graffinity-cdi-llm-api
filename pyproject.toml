@@ -43,6 +43,7 @@ optional-dependencies = {dev = [
     "twine",
 ], test = [
     "pytest",
+    "pytest-asyncio",
     "pytest-cov",
     "pytest-mock",
     "tox",
@@ -128,6 +129,7 @@ legacy_tox_ini = """
         pytest . --cov=llm_api --cov-report=xml
     deps =
         pytest
+        pytest-asyncio
         pytest-cov
         pytest-mock
 
