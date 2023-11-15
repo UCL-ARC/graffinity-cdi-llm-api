@@ -11,4 +11,7 @@ def mock_openai_client(mocker):
 
 @pytest.fixture()
 def mock_settings():
-    return Settings(openai_api_key="test_fixture_key")
+    return Settings(
+        openai_api_key="test_fixture_key",
+        llm_name="test-fixture-model"
+    )

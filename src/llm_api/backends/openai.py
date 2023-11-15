@@ -2,7 +2,9 @@
 import json
 
 import openai
-from openai import AsyncOpenAI
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langchain.schema.exceptions import LangChainException
 
 from llm_api.config import Settings
 
@@ -22,20 +24,24 @@ class OpenaiCaller:
             settings (Settings): Pydantic settings object.
         """
         self.settings = settings
-
         self.client = self.get_client()
 
-    def get_client(self) -> AsyncOpenAI:
+    def get_client(self) -> ChatOpenAI:
         """
         Retrieve an asynchronous OpenAI client object.
 
         Returns
-            OpenAI: OpenAI client object
+            ChatOpenAI: Langchain ChatOpenAI client object
         """
-        return AsyncOpenAI(api_key=self.settings.openai_api_key.get_secret_value())
+        return ChatOpenAI(
+            api_key=self.settings.openai_api_key.get_secret_value(),
+            model_name=self.settings.llm_name,
+            temperature=0.2,
+            model_kwargs={"response_format": {"type": "json_object"}},
+        )
 
     @staticmethod
-    def generate_openai_prompt(user_input: str) -> list[dict[str, str]]:
+    def generate_openai_prompt() -> ChatPromptTemplate:
         """
         Generate a prompt from user input to send to Openai models.
 
@@ -46,73 +52,88 @@ class OpenaiCaller:
             user_input (str): User search input.
 
         Returns:
-            list[dict[str, str]]: A list of dictionaries containing roles and content.
+            ChatPromptTemplate: A list of dictionaries containing roles and content.
         """
-        return [
-            {
-                "role": "system",
-                "content": "You are a helpful search assistant that extracts \
-                    useful entities and relationships from user search queries.",
-            },
-            {
-                "role": "system",
-                "content": "Users will provide you with a search, as a string. \
+        user_template = "{text}"
+        return ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    " ".join(
+                        "You are a helpful search assistant that extracts \
+                    useful entities and relationships from user search queries.".split()
+                    ),
+                ),
+                (
+                    "system",
+                    " ".join(
+                        "Users will provide you with a search, as a string. \
                     You should examine this string and determine entities directly \
                     from the string in addition to any other entities not found in \
                     the string that may be relevant to the search. \
                     Try to find at least 5 relevant entities in each case, but no \
                     more than 10. Try to keep entities specific to the search. \
                     If you are unsure whether an entity is connected to the search, \
-                    do not include it.",
-            },
-            {
-                "role": "system",
-                "content": "You should provide your response as valid JSON, in a \
-                format matching the following example. The example will be preceded and \
-                followed by three backticks. Dictionary keys should be taken literally, but \
-                dictionary values are indicative. \
-                ```\
-                    {'entities': [ \
-                        {'uri': 'entity name', 'description': 'entity description', \
-                        'wikipedia_url': 'entity wikipedia url'} \
-                    ]},\
+                    do not include it.".split()
+                    ),
+                ),
+                (
+                    "system",
+                    " ".join(
+                        "You should provide your response as valid JSON, in a \
+                format matching the following example, which is shown \
+                between the two sets of three backtick characters (`). Dictionary keys \
+                should be taken literally, \
+                but dictionary values are indicative".split()
+                    ),
+                ),
+                (
+                    "system",
+                    "```\
+                    {{'entities': [ \
+                        {{'uri': 'entity name', 'description': 'entity description', \
+                        'wikipedia_url': 'entity wikipedia url'}} \
+                    ]}},\
                     'connections': [\
-                    {'from': 'uri'\
+                    {{'from': 'uri'\
                     'to': 'uri'\
                     'label': 'label describing entity-entity relationship\
-                    }]\
-                    }\
-                ```",
-            },
-            {"role": "user", "content": f"{user_input}"},
-        ]
+                    }}]\
+                    }} \
+            ```",
+                ),
+                ("user", user_template),
+            ]
+        )
 
-    async def call_model(self, openai_model: str, prompt: list[dict]) -> dict[str, str]:
+    async def call_model(
+        self, prompt_template: ChatPromptTemplate, user_search: str
+    ) -> dict[str, str]:
         """
-        Call the external Openai model specified with a defined prompt.
+        Call the external Openai model specified with a defined prompt via LangChain.
 
         Args:
-            openai_model (str): String representing OpenAI model to call
-            prompt (list[dict]): Constructed prompt from user input
+            prompt_template (ChatPromptTemplate): LangChain ChatPromptTemplate
+                containing system instructions and any example formatting required.
+            user_search (str): User's search as a string.
 
         Raises:
+            OpenaiModelCallError: General LangChain exception
             OpenaiModelCallError: API connection exception
             OpenaiModelCallError: Rate limit exception
             OpenaiModelCallError: General API error exception
 
         Returns:
-            dict: Dictionary created from JSON response
+            dict[str, str]: Model JSON response as a dictionary.
         """
         try:
-            response = await self.client.chat.completions.create(
-                model=openai_model,
-                messages=prompt,
-                response_format={"type": "json_object"},
-            )
-            response_content = response.choices[0].message.content
+            self.chain = prompt_template | self.client
+            model_response = await self.chain.ainvoke({"text": user_search})
+            return json.loads(model_response.content)
 
-            return json.loads(response_content)
-
+        except LangChainException as langchain_error:
+            message = f"Error sending prompt to LLM. {langchain_error}"
+            raise OpenaiModelCallError(message) from langchain_error
         except openai.APIConnectionError as connection_error:
             message = f"Unable to connect to OpenAI. {connection_error}"
             raise OpenaiModelCallError(message) from connection_error

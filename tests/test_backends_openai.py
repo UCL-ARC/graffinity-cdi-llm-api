@@ -3,6 +3,8 @@ import json
 
 import openai
 import pytest
+from langchain.prompts import ChatPromptTemplate
+from langchain.schema.messages import AIMessage, HumanMessage
 from openai.types.chat.chat_completion import ChatCompletion, Choice
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 
@@ -25,82 +27,86 @@ def test_openai_caller_load_settings(mocker, mock_settings):
 def test_generate_openai_prompt_success():
     user_input = "What day is it today?"
 
-    expected_output = {"role": "user", "content": user_input}
+    prompt_output = OpenaiCaller.generate_openai_prompt()
+    assert isinstance(prompt_output, ChatPromptTemplate)
 
-    prompt_output = OpenaiCaller.generate_openai_prompt(user_input)
+    prompt_output = prompt_output.format_messages(text=user_input)
 
-    expected_prompt_elements = 4
-    assert isinstance(prompt_output, list)
+    expected_prompt_elements = 5
     assert len(prompt_output) == expected_prompt_elements
-    assert prompt_output[-1]["role"] == "user"
-    assert prompt_output[-1] == expected_output
+    assert isinstance(prompt_output[-1], HumanMessage)
+    assert prompt_output[-1].content == user_input
 
 
 @pytest.mark.asyncio
 async def test_call_model_success(mocker, mock_settings):
     caller = OpenaiCaller(mock_settings)
-    test_model = "my-test-gpt-model"
 
-    expected_example_response_string = '{\n    "name": "William Shakespeare",\n \
-        "occupation": "Playwright, poet, actor"}'
+    expected_entities = ["William Shakespeare", "Globe Theatre"]
+    mocked_result_dict = {
+        "entities": [
+        {
+        "uri": "William Shakespeare",
+        "description": "English playwright, poet, and actor",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/William_Shakespeare"
+        },
+        {
+        "uri": "Globe Theatre",
+        "description": "Theatre in London associated with William Shakespeare",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/Globe_Theatre"
+        },
+    ],
+    "connections": [
+        {
+        "from": "William Shakespeare",
+        "to": "Globe Theatre",
+        "label": "performed plays at"
+        },
+    ],
+    "user_search": "Who is Shakespeare?"
+    }
+    mocked_result = AIMessage(content=json.dumps(mocked_result_dict))
 
-    future = asyncio.Future()
-    future.set_result(ChatCompletion(
-        id="test-id",
-        choices=[
-            Choice(
-                finish_reason="stop",
-                index=0,
-                message=ChatCompletionMessage(
-                    content=expected_example_response_string,
-                    role="assistant",
-                    function_call=None,
-                    tool_calls=None,
-                ),
-            )
-        ],
-        created=1699546437,
-        model=test_model,
-        object="chat.completion",
+    mocker.patch(
+        "langchain.schema.runnable.base.RunnableSequence.ainvoke",
+        return_value = mocked_result
     )
-    )
-    mocker.patch.object(
-        caller.client.chat.completions,
-        "create",
-        return_value = future
-    )
+    user_template = "{text}"
+    test_prompt = ChatPromptTemplate.from_messages(
+            [
+            ("system", "You are a test system"),
+            ("system", "Provide a valid JSON response to the user."),
+            ("user", user_template)
+        ])
 
-    test_prompt = [
-        {"role": "system", "content": "You are a test system"},
-        {"role": "system", "content": "Provide a valid JSON response to the user."},
-        {"role": "user", "content": "Who is Shakespeare?"},
-    ]
+    test_search = "Who is Shakespeare?"
+    response = await caller.call_model(test_prompt, test_search)
 
-    response = await caller.call_model(test_model, test_prompt)
-
-    assert response == json.loads(expected_example_response_string)
+    assert expected_entities == [entity["uri"] for entity in response["entities"]]
 
 
 @pytest.mark.asyncio
 async def test_call_model_failure_api_connection_error(mocker, mock_settings):
     caller = OpenaiCaller(mock_settings)
-    test_model = "my-test-gpt-model"
 
-    mocked_client_call = mocker.patch.object(caller.client.chat.completions, "create")
+    mocked_client_call = mocker.patch("langchain.schema.runnable.base.RunnableSequence.ainvoke")
     expected_error_message = "Unable to connect to OpenAI. Connection error."
     patched_httpx_request = mocker.patch("httpx.Request")
     mocked_client_call.side_effect = openai.APIConnectionError(
         request=patched_httpx_request
     )
 
-    test_prompt = [
-        {"role": "system", "content": "You are a test system"},
-        {"role": "system", "content": "Provide a valid JSON response to the user."},
-        {"role": "user", "content": "Who is Shakespeare?"},
-    ]
+    user_template = "{text}"
+    test_prompt = ChatPromptTemplate.from_messages(
+            [
+            ("system", "You are a test system"),
+            ("system", "Provide a valid JSON response to the user."),
+            ("user", user_template)
+        ])
+    test_search = "Who is Shakespeare?"
 
     with pytest.raises(OpenaiModelCallError) as exception:
-        await caller.call_model(test_model, test_prompt)
+        await caller.call_model(test_prompt, test_search)
     assert str(exception.value) == expected_error_message
 
 
@@ -109,7 +115,7 @@ async def test_call_model_failure_rate_limit_error(mocker, mock_settings):
     caller = OpenaiCaller(mock_settings)
     test_model = "my-test-gpt-model"
 
-    mocked_client_call = mocker.patch.object(caller.client.chat.completions, "create")
+    mocked_client_call = mocker.patch("langchain.schema.runnable.base.RunnableSequence.ainvoke")
     unique_test_error_message = "This is a test case - rate limit error."
     expected_error_message = f"Rate limit exceeded. {unique_test_error_message}"
     mocked_response = mocker.patch("httpx.Response")
@@ -118,14 +124,17 @@ async def test_call_model_failure_rate_limit_error(mocker, mock_settings):
         unique_test_error_message, response=mocked_response, body=None
     )
 
-    test_prompt = [
-        {"role": "system", "content": "You are a test system"},
-        {"role": "system", "content": "Provide a valid JSON response to the user."},
-        {"role": "user", "content": "Who is Shakespeare?"},
-    ]
+    user_template = "{text}"
+    test_prompt = ChatPromptTemplate.from_messages(
+            [
+            ("system", "You are a test system"),
+            ("system", "Provide a valid JSON response to the user."),
+            ("user", user_template)
+        ])
+    test_search = "Who is Shakespeare?"
 
     with pytest.raises(OpenaiModelCallError) as exception:
-        await caller.call_model(test_model, test_prompt)
+        await caller.call_model(test_prompt, test_search)
 
     assert str(exception.value) == expected_error_message
 
@@ -133,9 +142,8 @@ async def test_call_model_failure_rate_limit_error(mocker, mock_settings):
 @pytest.mark.asyncio
 async def test_call_model_failure_api_error(mocker, mock_settings):
     caller = OpenaiCaller(mock_settings)
-    test_model = "my-test-gpt-model"
 
-    mocked_client_call = mocker.patch.object(caller.client.chat.completions, "create")
+    mocked_client_call = mocker.patch("langchain.schema.runnable.base.RunnableSequence.ainvoke")
     unique_test_error_message = "This is test case - API Error"
     expected_error_message = f"OpenAI API error: {unique_test_error_message}"
 
@@ -145,13 +153,17 @@ async def test_call_model_failure_api_error(mocker, mock_settings):
         unique_test_error_message, request=mocked_request, body=None
     )
 
-    test_prompt = [
-        {"role": "system", "content": "You are a test system"},
-        {"role": "system", "content": "Provide a valid JSON response to the user."},
-        {"role": "user", "content": "Who is Shakespeare?"},
-    ]
+    user_template = "{text}"
+    test_prompt = ChatPromptTemplate.from_messages(
+            [
+            ("system", "You are a test system"),
+            ("system", "Provide a valid JSON response to the user."),
+            ("user", user_template)
+        ])
+    test_search = "Who is Shakespeare?"
 
     with pytest.raises(OpenaiModelCallError) as exception:
-        await caller.call_model(test_model, test_prompt)
+        await caller.call_model(test_prompt, test_search)
+
 
     assert str(exception.value) == expected_error_message

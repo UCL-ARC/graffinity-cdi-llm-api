@@ -1,9 +1,11 @@
 """API tests."""
+import asyncio
+
+import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
-import pytest
-import asyncio
+
 from llm_api.backends.openai import OpenaiCaller
 from llm_api.main import app
 

@@ -48,14 +48,14 @@ class InputDataSpec(BaseModel):
 
 @router.post("/call_model")
 async def call_language_model(
-    user_search: InputDataSpec,
+    request_body: InputDataSpec,
     settings: Settings = Depends(get_settings),  # noqa: B008
 ) -> dict:
     """
     Call a language model with the provided user search as prompt input.
 
     Args:
-        user_search (InputDataSpec): Request body format for post requests.
+        request_body (InputDataSpec): Request body for post requests, containing user search.
         settings (settings): Injected settings object to provide API keys and model names.
             Is fetched from server-side.
 
@@ -68,10 +68,10 @@ async def call_language_model(
     """
     caller = OpenaiCaller(settings)
 
-    full_prompt = OpenaiCaller.generate_openai_prompt(user_search.user_search)
+    prompt_template = OpenaiCaller.generate_openai_prompt()
     try:
-        model_response = await caller.call_model(settings.llm_name, full_prompt)
-        model_response.update({"user_search": user_search.user_search})
+        model_response = await caller.call_model(prompt_template, request_body.user_search)
+        model_response.update({"user_search": request_body.user_search})
         return model_response  # noqa: TRY300
     except OpenaiModelCallError as model_call_error:
         raise ModelCallingError(
