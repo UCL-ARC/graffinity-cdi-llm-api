@@ -1,16 +1,26 @@
 """API tests."""
-import asyncio
-
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
+from pydantic import SecretStr
+from pydantic_settings import BaseSettings
 
 from llm_api.backends.openai import OpenaiCaller
 from llm_api.main import app
+from llm_api.config import get_settings
 
 sync_client = TestClient(app)
 
+class TestSettings(BaseSettings):
+
+    openai_api_key: SecretStr = SecretStr("test_inplace_key")
+    llm_name: str = "test-inplace-model"
+
+def get_test_settings():
+    return TestSettings()
+
+app.dependency_overrides[get_settings] = get_test_settings
 
 def test_ping() -> None:
     """Test basic API functionality."""
