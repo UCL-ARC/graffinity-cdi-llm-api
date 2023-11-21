@@ -108,7 +108,7 @@ To contribute to the project as a developer, use the following as a guide. These
 Install the project and development dependencies via `pip` with
 
 ```bash
-pip install -e ".[dev]"
+pip install -e ".[dev,tests]"
 ```
 
 Install pre-commit hooks with
