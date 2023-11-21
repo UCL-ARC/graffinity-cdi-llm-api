@@ -78,7 +78,19 @@ pip install -e .
 
 ### Running Locally
 
-How to run the application on your local system.
+The FastAPI application is run locally with
+
+```bash
+python src/llm_api/main.py
+```
+
+This runs the application via the [Uvicorn](https://www.uvicorn.org/) ASGI server on `http://localhost:8000`. Any changes to the code are immediately reflected in the running application. This setup is designed for local testing, and does not target production releases.
+
+This default behaviour may be changed by running the uvicorn server directly via
+
+```bash
+uvicorn llm_api.main:app --host {your host here} --port {your port here}
+```
 
 ### Running Tests
 
@@ -108,7 +120,7 @@ To contribute to the project as a developer, use the following as a guide. These
 Install the project and development dependencies via `pip` with
 
 ```bash
-pip install -e ".[dev]"
+pip install -e ".[dev,tests]"
 ```
 
 Install pre-commit hooks with

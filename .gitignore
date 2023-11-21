@@ -161,3 +161,6 @@ cython_debug/
 
 # versioning
 src/llm_api/_version.py
+
+# VSCode settings
+settings.json
