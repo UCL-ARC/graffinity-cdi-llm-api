@@ -2,7 +2,6 @@
 build-backend = "setuptools.build_meta"
 requires = [
     "setuptools",
-    "setuptools-scm",
 ]
 
 [project]
@@ -27,9 +26,6 @@ dependencies = [
     "uvicorn>=0.24.0,<0.25.0",
 ]
 description = "API for converting user searches to robust LLM prompts and returning a response."
-dynamic = [
-    "version",
-]
 keywords = [
 ]
 name = "llm-api"
@@ -50,6 +46,7 @@ optional-dependencies = {dev = [
 ]}
 readme = "README.md"
 requires-python = ">=3.11"
+version = "0.1.13"
 license.file = "LICENSE.md"
 urls.homepage = "https://github.com/UCL-ARC/graffinity-cdi-llm-api/"
 
@@ -106,10 +103,6 @@ mccabe.max-complexity = 18
 pep8-naming.classmethod-decorators = [
     "classmethod",
 ]
-
-[tool.setuptools_scm]
-local_scheme = "no-local-version"
-write_to = "src/llm_api/_version.py"
 
 [tool.tomlsort]
 all = true

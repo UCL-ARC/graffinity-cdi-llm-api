@@ -76,6 +76,8 @@ and then install in editable mode by running
 pip install -e .
 ```
 
+Rename `.env.example` to `.env` and provide a value for each variable. Particular attention should be paid to API keys and model names.
+
 ### Running Locally
 
 The FastAPI application is run locally with
@@ -90,6 +92,30 @@ This default behaviour may be changed by running the uvicorn server directly via
 
 ```bash
 uvicorn llm_api.main:app --host {your host here} --port {your port here}
+```
+
+### Docker deployment via Docker Compose
+
+`Dockerfile` contains instructions for building a docker image that runs this application with a [Gunicorn](https://gunicorn.org/#docs) server. Gunicorn configuration can be found in `src/llm_api/gunicorn_conf.py`. Ensure the `API_PORT` variable is defined in the `.env` file.
+
+Container orchestration is performed by [Docker Compose](https://docs.docker.com/compose/), allowing for multiple networked containers. You may prefer to use Kubernetes or similar, and this is just shown here as an example. The `compose.yml` file defines the service name, relevant env file to use, methods of determining container health, port mappings and internal network names. We currently deploy a single service, though this can be easily extended using Docker Compose.
+
+Build and deploy the application on `http://localhost:{API_PORT}` with the following command
+
+```bash
+docker compose --project-name ${PROJECT_NAME} up --build
+```
+
+the application can be taken down via
+
+```bash
+docker compose  --project-name ${PROJECT_NAME} down
+```
+
+Any additional running containers associated with `${PROJECT_NAME}` but not defined in `compose.yml` (for whatever reason) can be stopped with
+
+```bash
+docker compose  --project-name llm_api down --remove-orphans
 ```
 
 ### Running Tests
