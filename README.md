@@ -43,6 +43,7 @@ Centre for Advanced Research Computing, University College London
 
 ## Built With
 
+[python-tooling](https://github.com/UCL-ARC/python-tooling)
 [FastAPI](https://fastapi.tiangolo.com/)
 [Pydantic](https://pydantic.dev/)
 [LangChain](https://python.langchain.com/docs/get_started/introduction)
