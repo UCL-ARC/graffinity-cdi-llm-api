@@ -33,7 +33,9 @@ This project is developed in collaboration with the [Centre for Advanced Researc
 ### Project Team
 
 Harry Moss ([h.moss@ucl.ac.uk](mailto:h.moss@ucl.ac.uk))
+
 Sanaz Jabbari ([s.jabbari@ucl.ac.uk](mailto:s.jabbari@ucl.ac.uk))
+
 Nik Khadijah Nik Aznan ([n.aznan@ucl.ac.uk](mailto:n.aznan@ucl.ac.uk))
 
 ### Research Software Engineering Contact
@@ -44,8 +46,11 @@ Centre for Advanced Research Computing, University College London
 ## Built With
 
 [python-tooling](https://github.com/UCL-ARC/python-tooling)
+
 [FastAPI](https://fastapi.tiangolo.com/)
+
 [Pydantic](https://pydantic.dev/)
+
 [LangChain](https://python.langchain.com/docs/get_started/introduction)
 
 ## Getting Started
