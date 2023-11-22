@@ -45,6 +45,7 @@ Centre for Advanced Research Computing, University College London
 
 [FastAPI](https://fastapi.tiangolo.com/)
 [Pydantic](https://pydantic.dev/)
+[LangChain](https://python.langchain.com/docs/get_started/introduction)
 
 ## Getting Started
 
@@ -58,7 +59,7 @@ Centre for Advanced Research Computing, University College London
 
 <!-- How to build or install the application. -->
 
-We recommend installing in a project specific virtual environment created using a environment management tool such as [Mamba](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) or [Conda](https://conda.io/projects/conda/en/latest/). To install the latest development version of `llm-api` using `pip` in the currently active environment run
+We recommend installing in a project specific virtual environment created using a environment management tool such as [Conda](https://conda.io/projects/conda/en/latest/). To install the latest development version of `llm-api` using `pip` in the currently active environment run
 
 ```sh
 pip install git+https://github.com/UCL-ARC/graffinity-cdi-llm-api.git
@@ -78,19 +79,21 @@ pip install -e .
 
 ### Running Locally
 
-The FastAPI application is run locally with
+The FastAPI application can be run locally with
 
 ```bash
 python src/llm_api/main.py
 ```
 
-This runs the application via the [Uvicorn](https://www.uvicorn.org/) ASGI server on `http://localhost:8000`. Any changes to the code are immediately reflected in the running application. This setup is designed for local testing, and does not target production releases.
+This runs the application via the [Uvicorn](https://www.uvicorn.org/) ASGI server on `http://localhost:8000`. Any changes to the code are immediately reflected in the running application.
 
 This default behaviour may be changed by running the uvicorn server directly via
 
 ```bash
 uvicorn llm_api.main:app --host {your host here} --port {your port here}
 ```
+
+Running the application with a Uvicorn server is intended only for local testing and is not recommended for use in production.
 
 ### Running Tests
 
@@ -136,7 +139,7 @@ Future `git commit` operations will now run pre-commit hooks to ensure code styl
 To make explicit some of the potentially implicit:
 
 - We will target Python versions `>= 3.11`
-- We will use [ruff](https://beta.ruff.rs/docs/) for linting and [black](https://github.com/psf/black) for code formatting to standardise code, improve legibility and speed up code reviews
+- We will use [ruff](https://beta.ruff.rs/docs/) for linting and code formatting to standardise code, improve legibility and speed up code reviews
 - Function arguments and return types will be annotated, with type checking via [mypy](https://mypy.readthedocs.io/en/stable/)
 - We will use [docstrings](https://peps.python.org/pep-0257/) to annotate classes, class methods and functions
   - If you use Visual Studio Code, [autoDocstring](https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring) is recommended to speed this along.
@@ -168,7 +171,7 @@ The `main` branch is for ready-to-deploy release quality code
 ## Roadmap
 
 - [x] Initial Research
-- [ ] Minimum viable product <-- You are Here
+- [x] Minimum viable product <-- You are Here
 - [ ] Alpha Release
 - [ ] Feature-Complete Release
 
