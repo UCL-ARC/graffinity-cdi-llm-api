@@ -118,8 +118,6 @@ To run tests manually in a Python environment with `pytest` installed run
 pytest tests
 ```
 
-again from the root of the repository.
-
 ## Contributing
 
 To contribute to the project as a developer, use the following as a guide. These are based on ARC Collaborations [group practices](https://github.com/UCL-ARC/research-software-documentation/blob/main/processes/programming_projects/group_practices.md) and [code review documentation](https://github.com/UCL-ARC/research-software-documentation/blob/main/processes/programming_projects/review.md).
