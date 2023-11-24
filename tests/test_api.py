@@ -16,7 +16,7 @@ sync_client = TestClient(app)
 class TestSettings(BaseSettings):
 
     openai_api_key: SecretStr = SecretStr("test_inplace_key")
-    llm_name: str = "test-inplace-model"
+    openai_llm_name: str = "test-inplace-model"
 
 
 def get_test_settings():

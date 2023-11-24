@@ -8,7 +8,10 @@ class Settings(BaseSettings):
     """Store typed settings for Pydantic."""
 
     openai_api_key: SecretStr
-    llm_name: str
+    openai_llm_name: str
+    aws_access_key_id: str
+    aws_secret_access_key: SecretStr
+    aws_bedrock_model_id: str
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

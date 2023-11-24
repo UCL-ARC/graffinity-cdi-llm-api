@@ -35,7 +35,7 @@ class OpenaiCaller:
         """
         return ChatOpenAI(
             api_key=self.settings.openai_api_key.get_secret_value(),
-            model_name=self.settings.llm_name,
+            model_name=self.settings.openai_llm_name,
             temperature=0.2,
             model_kwargs={"response_format": {"type": "json_object"}},
         )
