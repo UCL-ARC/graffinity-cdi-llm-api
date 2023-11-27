@@ -93,7 +93,7 @@ The FastAPI application can be run locally with
 python src/llm_api/main.py
 ```
 
-This runs the application via the [Uvicorn](https://www.uvicorn.org/) ASGI server on `http://localhost:8000`. Any changes to the code are immediately reflected in the running application.
+This runs the application via the [Uvicorn](https://www.uvicorn.org/) ASGI server on `http://localhost:8000`, with automatically generated OpenAPI Swagger documentation available at `http://localhost:8000/docs`. Any changes to the code are immediately reflected in the running application.
 
 This default behaviour may be changed by running the uvicorn server directly via
 
