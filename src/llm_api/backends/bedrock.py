@@ -6,8 +6,9 @@ from typing import Any
 import boto3
 from langchain.chat_models import BedrockChat
 from langchain.llms import Bedrock
-from langchain.prompts import ChatPromptTemplate
+from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
 from langchain.schema.exceptions import LangChainException
+from langchain.schema.messages import SystemMessage
 
 from llm_api.config import Settings
 
@@ -80,9 +81,8 @@ class BedrockCaller:
         user_template = "{text}"
         return ChatPromptTemplate.from_messages(
             [
-                (
-                    "system",
-                    " ".join(
+                SystemMessage(
+                    content=" ".join(
                         "You are a helpful search assistant that extracts \
                     useful entities and relationships from user search queries \
                     and returns the answer as JSON. The user can only understand \
@@ -93,9 +93,8 @@ class BedrockCaller:
                     with information.".split()
                     ),
                 ),
-                (
-                    "system",
-                    " ".join(
+                SystemMessage(
+                    content=" ".join(
                         "Users will provide you with a search, as a string. \
                     You should examine this string and determine any entities directly \
                     found in the string in addition to as many other relevant connected entities \
@@ -107,9 +106,8 @@ class BedrockCaller:
                     relevant to the user search.".split()
                     ),
                 ),
-                (
-                    "system",
-                    " ".join(
+                SystemMessage(
+                    content=" ".join(
                         "Respond to the user by providing valid JSON in the format \
                         specified in the example shown here. Do not include any text outside \
                         of the JSON response. Format your JSON response by \
@@ -119,9 +117,8 @@ class BedrockCaller:
                         but dictionary values are indicative".split()
                     ),
                 ),
-                (
-                    "system",
-                    "```\
+                SystemMessage(
+                    content="```\
                     {{'entities': [ \
                         {{'uri': 'entity name', 'description': 'entity description', \
                         'wikipedia_url': 'entity wikipedia url'}} \
@@ -134,7 +131,7 @@ class BedrockCaller:
                     }} \
             ```",
                 ),
-                ("human", user_template),
+                HumanMessagePromptTemplate.from_template(user_template),
             ]
         )
 
