@@ -13,8 +13,7 @@ class Settings(BaseSettings):
     aws_secret_access_key: SecretStr
     aws_bedrock_model_id: str
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
+        env_file=".env", env_file_encoding="utf-8", env_prefix="LLM_API_"
     )
 
 

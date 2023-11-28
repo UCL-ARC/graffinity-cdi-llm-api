@@ -83,6 +83,18 @@ and then install in editable mode by running
 pip install -e .
 ```
 
+### Setting up environment variables
+
+This is a crucial step in running the application and should not be skipped! We use [Pydantic settings management](https://docs.pydantic.dev/latest/concepts/pydantic_settings/#environment-variable-names) to configure and verify settings such as API keys, LLM model choice and, when running via Docker Compose, port choice. Pydantic will preferentially set the variables defined in [config.py](src/llm_api/config.py#L7) from existing environment variables, before reading from a `.env` file in the root directory of the repository. An example `.env.example` file is provided showing the correct naming scheme for all required settings variables, with a prefix defined in [config.py](src/llm_api/config.py#L13).
+
+Before running the application (either locally or in a container), rename `.env.example` to `.env` and provide a value for each variable. Particular attention should be paid to API keys and model names.
+
+A description of each variable is provided below:
+
+- `LLM_API_OPENAI_API_KEY` is **your** OpenAI API key. You must have completed billing details and preloaded credit to your account before models are callable.
+- `LLM_API_LLM_NAME` is set with a prefilled value in `.env.example` and is the recommended OpenAI model for use.
+- `API_PORT` is set to 9000 as a default. Feel free to change this as required.
+
 ### Running Locally
 
 The FastAPI application can be run locally with
@@ -91,7 +103,7 @@ The FastAPI application can be run locally with
 python src/llm_api/main.py
 ```
 
-This runs the application via the [Uvicorn](https://www.uvicorn.org/) ASGI server on `http://localhost:8000`. Any changes to the code are immediately reflected in the running application.
+This runs the application via the [Uvicorn](https://www.uvicorn.org/) ASGI server on [http://localhost:8000](http://localhost:8000), with automatically generated OpenAPI Swagger documentation available at [http://localhost:8000/docs](http://localhost:8000/docs). Any changes to the code are immediately reflected in the running application.
 
 This default behaviour may be changed by running the uvicorn server directly via
 
@@ -99,7 +111,31 @@ This default behaviour may be changed by running the uvicorn server directly via
 uvicorn llm_api.main:app --host {your host here} --port {your port here}
 ```
 
-Running the application with a Uvicorn server is intended only for local testing and is not recommended for use in production.
+Running the application with a Uvicorn server is intended only for local testing and is not recommended for use in production. For production deployment, please see [Docker deployment via Docker Compose](#docker-deployment-via-docker-compose).
+
+### Docker deployment via Docker Compose
+
+`Dockerfile` contains instructions for building a docker image that runs this application with a [Gunicorn](https://gunicorn.org/#docs) server. Gunicorn configuration can be found in `src/llm_api/gunicorn_conf.py`. Ensure the `API_PORT` variable is defined in the `.env` file.
+
+Container orchestration is performed by [Docker Compose](https://docs.docker.com/compose/), allowing for multiple networked containers. You may prefer to use Kubernetes or similar, and this is just shown here as an example. The `compose.yml` file defines the service name, relevant env file to use, methods of determining container health, port mappings and internal network names. We currently deploy a single service, though this can be easily extended using Docker Compose.
+
+Build and deploy the application on `http://localhost:{API_PORT}` with the following command
+
+```bash
+docker compose --project-name ${PROJECT_NAME} up --build
+```
+
+the application can be taken down via
+
+```bash
+docker compose  --project-name ${PROJECT_NAME} down
+```
+
+Any additional running containers associated with `${PROJECT_NAME}` but not defined in `compose.yml` (for whatever reason) can be stopped with
+
+```bash
+docker compose  --project-name llm_api down --remove-orphans
+```
 
 ### Running Tests
 
