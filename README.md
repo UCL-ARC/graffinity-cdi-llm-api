@@ -187,6 +187,16 @@ To make explicit some of the potentially implicit:
 - We will use [docstrings](https://peps.python.org/pep-0257/) to annotate classes, class methods and functions
   - If you use Visual Studio Code, [autoDocstring](https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring) is recommended to speed this along.
 
+### Secrets detection
+
+We use a [secret detection pre-commit hook](https://github.com/Yelp/detect-secrets) to ensure that no passwords, API keys or similarly sensitive credentials are committed to the repository. If you add in some fake credentials (for testing purposes or similar), please update the `.secrets.baseline` file in order for CI checks on any resulting pull requests to pass. You can update this file by running
+
+```bash
+detect-secrets scan > .secrets.baseline
+```
+
+from the root directory of the repository. The `detect-secrets` dependency is installed via `pip` if you select the `dev` optional dependencies.
+
 ### General GitHub workflow
 
 - Create a branch for each new piece of work with a suitable descriptive name, such as `feature-newgui` or `adding-scaffold`

@@ -32,6 +32,7 @@ keywords = [
 name = "llm-api"
 optional-dependencies = {dev = [
     "build",
+    "detect-secrets",
     "mypy",
     "pre-commit",
     "pytest",
