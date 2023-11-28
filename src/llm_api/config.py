@@ -10,8 +10,7 @@ class Settings(BaseSettings):
     openai_api_key: SecretStr
     llm_name: str
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
+        env_file=".env", env_file_encoding="utf-8", env_prefix="LLM_API_"
     )
 
 
