@@ -83,7 +83,17 @@ and then install in editable mode by running
 pip install -e .
 ```
 
-Rename `.env.example` to `.env` and provide a value for each variable. Particular attention should be paid to API keys and model names.
+### Setting up environment variables
+
+This is a crucial step in running the application and should not be skipped! We use [Pydantic settings management](https://docs.pydantic.dev/latest/concepts/pydantic_settings/#environment-variable-names) to configure and verify settings such as API keys, LLM model choice and, when running via Docker Compose, port choice. Pydantic will preferentially set the variables defined in [config.py](src/llm_api/config.py#L7) from existing environment variables, before reading from a `.env` file in the root directory of the repository. An example `.env.example` file is provided showing the correct naming scheme for all required settings variables, with a prefix defined in [config.py](src/llm_api/config.py#L13).
+
+Before running the application (either locally or in a container), rename `.env.example` to `.env` and provide a value for each variable. Particular attention should be paid to API keys and model names.
+
+A description of each variable is provided below:
+
+- `LLM_API_OPENAI_API_KEY` is **your** OpenAI API key. You must have completed billing details and preloaded credit to your account before models are callable.
+- `LLM_API_LLM_NAME` is set with a prefilled value in `.env.example` and is the recommended OpenAI model for use.
+- `API_PORT` is set to 9000 as a default. Feel free to change this as required.
 
 ### Running Locally
 
