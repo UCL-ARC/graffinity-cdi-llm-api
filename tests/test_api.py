@@ -34,7 +34,7 @@ def test_ping() -> None:
 
 
 @pytest.mark.asyncio
-async def test_call_model(mocker):
+async def test_call_model_openai(mocker):
 
     model_output = {
         "entities": [
@@ -52,7 +52,7 @@ async def test_call_model(mocker):
     mocker.patch.object(OpenaiCaller, "call_model", return_value=model_output.copy())
     async with AsyncClient(app=app, base_url="http://test") as ac:
         payload = {"user_search": "imagery and symbolism in macbeth"}
-        response = await ac.post("/call_model", json=payload)
+        response = await ac.post("/call_model_openai", json=payload)
 
         assert response.json()["entities"] == model_output["entities"]
         assert response.json()["connections"] == model_output["connections"]
