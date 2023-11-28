@@ -92,7 +92,10 @@ Before running the application (either locally or in a container), rename `.env.
 A description of each variable is provided below:
 
 - `LLM_API_OPENAI_API_KEY` is **your** OpenAI API key. You must have completed billing details and preloaded credit to your account before models are callable.
-- `LLM_API_LLM_NAME` is set with a prefilled value in `.env.example` and is the recommended OpenAI model for use.
+- `LLM_API_OPENAI_LLM_NAME` is set with a prefilled value in `.env.example` and is the recommended OpenAI model for use.
+- `LLM_API_AWS_ACCESS_KEY_ID` is the Access Key ID from an AWS account with the Allow permission set on the `bedrock:InvokeModel` action on the resource `arn:aws:bedrock:*::foundation-model/*`.
+- `LLM_API_AWS_SECRET_ACCESS_KEY` is the corresponding secret key to the above Access Key ID.
+- `LLM_API_AWS_BEDROCK_MODEL_ID` is the bedrock model ID string. As a default, this is set to `anthropic.claude-v2`.
 - `API_PORT` is set to 9000 as a default. Feel free to change this as required.
 
 ### Running Locally
