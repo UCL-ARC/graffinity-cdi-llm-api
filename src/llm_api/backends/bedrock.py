@@ -4,7 +4,6 @@ from json.decoder import JSONDecodeError
 from typing import Any
 
 import boto3
-from langchain.chat_models import BedrockChat
 from langchain.llms import Bedrock
 from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
 from langchain.schema.exceptions import LangChainException
@@ -139,7 +138,7 @@ class BedrockCaller:
         self, prompt_template: ChatPromptTemplate, user_search: str
     ) -> dict[str, str]:
         """
-        Call the external Claude2 model via Bedrock specified with a defined prompt via LangChain.
+        Call the external Bedrock model specified with a defined prompt via LangChain.
 
         Args:
             prompt_template (ChatPromptTemplate): LangChain ChatPromptTemplate
@@ -157,58 +156,6 @@ class BedrockCaller:
         """
         try:
             self.chain = prompt_template | self.client
-            model_response = await self.chain.ainvoke({"text": user_search})
-
-            try:
-                return json.loads(model_response.split("```")[1].strip("json"))
-            except IndexError as unexpected_response_error:
-                message = f"Unable to parse model output as expected. {unexpected_response_error}"
-                raise BedrockModelCallError(message) from unexpected_response_error
-            except JSONDecodeError as json_error:
-                message = f"Error decoding model output. {json_error}"
-                raise BedrockModelCallError(message) from json_error
-        except ValueError as bedrock_model_call_error:
-            message = f"Error calling model. {bedrock_model_call_error}"
-            raise BedrockModelCallError(message) from bedrock_model_call_error
-        except LangChainException as langchain_error:
-            message = f"Error sending prompt to LLM. {langchain_error}"
-            raise BedrockModelCallError(message) from langchain_error
-
-    async def call_model_chat(
-        self, prompt_template: ChatPromptTemplate, user_search: str
-    ) -> dict[str, str]:
-        """
-        Call the external Claude2 model via Bedrock specified with a defined prompt via LangChain.
-
-        Uses the LangChain BedrockChat class instead of directly calling the LLM.
-
-        Args:
-            prompt_template (ChatPromptTemplate): LangChain ChatPromptTemplate
-                containing system instructions and any example formatting required.
-            user_search (str): User's search as a string.
-
-        Raises:
-            BedrockModelCallError: Index error due to unexpected response format
-            BedrockModelCallError: JSONDecode error due to unexpected response format
-            BedrockModelCallError: General LangChain exception
-
-
-        Returns:
-            dict[str, str]: Model JSON response as a dictionary.
-        """
-        try:
-            chat_client = BedrockChat(
-                client=self.boto3_client,
-                model_id=self.settings.aws_bedrock_model_id,
-                model_kwargs={
-                    "max_tokens_to_sample": 4096,
-                    "temperature": 0.2,
-                    "top_k": 250,
-                    "top_p": 1,
-                    "stop_sequences": ["\n\nHuman:"],
-                },
-            )
-            self.chain = prompt_template | chat_client
             model_response = await self.chain.ainvoke({"text": user_search})
 
             try:

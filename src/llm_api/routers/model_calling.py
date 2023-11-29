@@ -109,55 +109,12 @@ async def call_model_bedrock(
     Returns:
         _type_: _description_
     """
-    start = time.time()
     caller = BedrockCaller(settings)
 
     prompt_template = BedrockCaller.generate_prompt()
     try:
         model_response = await caller.call_model(prompt_template, request_body.user_search)
         model_response.update({"user_search": request_body.user_search})
-        end = time.time()
-        logger.info(f"Bedrock langchain standard model time: {end - start}s")
-        return model_response  # noqa: TRY300
-    except BedrockModelCallError as model_call_error:
-        raise ModelCallingError(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Error calling model. {model_call_error}",
-        ) from model_call_error
-
-
-@router.post("/call_model_bedrock_chat")
-async def call_model_bedrock_chat(
-    request_body: InputDataSpec,
-    settings: Settings = Depends(get_settings),  # noqa: B008
-) -> dict:
-    """
-    Call a Bedrock language model with the provided user search as prompt input.
-
-    Uses a LangChain chat model object instead of directly calling a LangChain LLM object.
-
-    Args:
-        request_body (InputDataSpec): Request body for post requests, containing user search.
-        settings (settings): Injected settings object to provide API keys and model names.
-            Is fetched from server-side.
-
-    Raises:
-        ModelCallingError: HTTP status code raised in the case of a bad model call, without
-            having the API fall over.
-
-    Returns:
-        _type_: _description_
-    """
-    start = time.time()
-    caller = BedrockCaller(settings)
-
-    prompt_template = BedrockCaller.generate_prompt()
-    try:
-        model_response = await caller.call_model(prompt_template, request_body.user_search)
-        model_response.update({"user_search": request_body.user_search})
-        end = time.time()
-        logger.info(f"Bedrock langchain chat model time: {end - start}s")
-
         return model_response  # noqa: TRY300
     except BedrockModelCallError as model_call_error:
         raise ModelCallingError(
