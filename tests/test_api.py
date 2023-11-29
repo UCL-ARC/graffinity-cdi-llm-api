@@ -6,8 +6,8 @@ from httpx import AsyncClient
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings
 
-from llm_api.backends.openai import OpenaiCaller
-from llm_api.backends.bedrock import BedrockCaller
+from llm_api.backends.openai import OpenaiCaller, OpenaiModelCallError
+from llm_api.backends.bedrock import BedrockCaller, BedrockModelCallError
 from llm_api.config import get_settings, GPTModel, BedrockModel
 from llm_api.main import app
 
@@ -17,7 +17,7 @@ sync_client = TestClient(app)
 class TestSettings(BaseSettings):
 
     openai_api_key: SecretStr = SecretStr("test_fixture_key")
-    openai_llm_name: str = "test-fixture-model"
+    openai_llm_name: GPTModel = GPTModel.GPT4
     aws_access_key_id: str = "dummy-access-id"
     aws_secret_access_key: SecretStr = SecretStr("dummy-secret-key")
     aws_bedrock_model_id: BedrockModel = BedrockModel.CLAUDE
@@ -64,6 +64,16 @@ async def test_call_model_openai(mocker):
 
 
 @pytest.mark.asyncio
+async def test_call_model_openai_failure(mocker):
+
+    mocker.patch.object(OpenaiCaller, "call_model", side_effect=OpenaiModelCallError)
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        payload = {"user_search": "imagery and symbolism in macbeth"}
+        response = await ac.post("/call_model_openai", json=payload)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+@pytest.mark.asyncio
 async def test_call_model_bedrock(mocker):
 
     model_output = {
@@ -86,3 +96,13 @@ async def test_call_model_bedrock(mocker):
         assert response.json()["entities"] == model_output["entities"]
         assert response.json()["connections"] == model_output["connections"]
         assert response.json()["user_search"] == payload["user_search"]
+
+@pytest.mark.asyncio
+async def test_call_model_bedrock_failure(mocker):
+
+    mocker.patch.object(BedrockCaller, "call_model", side_effect=BedrockModelCallError)
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        payload = {"user_search": "imagery and symbolism in macbeth"}
+        response = await ac.post("/call_model_bedrock", json=payload)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
