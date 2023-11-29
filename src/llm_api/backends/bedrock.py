@@ -167,6 +167,9 @@ class BedrockCaller:
             except JSONDecodeError as json_error:
                 message = f"Error decoding model output. {json_error}"
                 raise BedrockModelCallError(message) from json_error
+        except ValueError as bedrock_model_call_error:
+            message = f"Error calling model. {bedrock_model_call_error}"
+            raise BedrockModelCallError(message) from bedrock_model_call_error
         except LangChainException as langchain_error:
             message = f"Error sending prompt to LLM. {langchain_error}"
             raise BedrockModelCallError(message) from langchain_error
@@ -216,6 +219,9 @@ class BedrockCaller:
             except JSONDecodeError as json_error:
                 message = f"Error decoding model output. {json_error}"
                 raise BedrockModelCallError(message) from json_error
+        except ValueError as bedrock_model_call_error:
+            message = f"Error calling model. {bedrock_model_call_error}"
+            raise BedrockModelCallError(message) from bedrock_model_call_error
         except LangChainException as langchain_error:
             message = f"Error sending prompt to LLM. {langchain_error}"
             raise BedrockModelCallError(message) from langchain_error

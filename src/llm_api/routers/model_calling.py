@@ -1,5 +1,8 @@
 """Define router containing model calling logic."""
+import time
+
 from fastapi import APIRouter, Depends, HTTPException, status
+from loguru import logger
 from pydantic import BaseModel
 
 from llm_api.backends.bedrock import BedrockCaller, BedrockModelCallError
@@ -67,12 +70,15 @@ async def call_model_openai(
     Returns:
         _type_: _description_
     """
+    start = time.time()
     caller = OpenaiCaller(settings)
 
     prompt_template = OpenaiCaller.generate_openai_prompt()
     try:
         model_response = await caller.call_model(prompt_template, request_body.user_search)
         model_response.update({"user_search": request_body.user_search})
+        end = time.time()
+        logger.info(f"GPT4 Turbo model time: {end - start}s")
         return model_response  # noqa: TRY300
     except OpenaiModelCallError as model_call_error:
         raise ModelCallingError(
@@ -103,12 +109,15 @@ async def call_model_bedrock(
     Returns:
         _type_: _description_
     """
+    start = time.time()
     caller = BedrockCaller(settings)
 
     prompt_template = BedrockCaller.generate_prompt()
     try:
         model_response = await caller.call_model(prompt_template, request_body.user_search)
         model_response.update({"user_search": request_body.user_search})
+        end = time.time()
+        logger.info(f"Bedrock langchain standard model time: {end - start}s")
         return model_response  # noqa: TRY300
     except BedrockModelCallError as model_call_error:
         raise ModelCallingError(
@@ -139,12 +148,16 @@ async def call_model_bedrock_chat(
     Returns:
         _type_: _description_
     """
+    start = time.time()
     caller = BedrockCaller(settings)
 
     prompt_template = BedrockCaller.generate_prompt()
     try:
         model_response = await caller.call_model(prompt_template, request_body.user_search)
         model_response.update({"user_search": request_body.user_search})
+        end = time.time()
+        logger.info(f"Bedrock langchain chat model time: {end - start}s")
+
         return model_response  # noqa: TRY300
     except BedrockModelCallError as model_call_error:
         raise ModelCallingError(
