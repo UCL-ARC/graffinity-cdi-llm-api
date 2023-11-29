@@ -6,9 +6,9 @@ from httpx import AsyncClient
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings
 
-from llm_api.backends.openai import OpenaiCaller, OpenaiModelCallError
 from llm_api.backends.bedrock import BedrockCaller, BedrockModelCallError
-from llm_api.config import get_settings, GPTModel, BedrockModel
+from llm_api.backends.openai import OpenaiCaller, OpenaiModelCallError
+from llm_api.config import BedrockModel, GPTModel, get_settings
 from llm_api.main import app
 
 sync_client = TestClient(app)
@@ -73,6 +73,7 @@ async def test_call_model_openai_failure(mocker):
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+
 @pytest.mark.asyncio
 async def test_call_model_bedrock(mocker):
 
@@ -96,6 +97,7 @@ async def test_call_model_bedrock(mocker):
         assert response.json()["entities"] == model_output["entities"]
         assert response.json()["connections"] == model_output["connections"]
         assert response.json()["user_search"] == payload["user_search"]
+
 
 @pytest.mark.asyncio
 async def test_call_model_bedrock_failure(mocker):
