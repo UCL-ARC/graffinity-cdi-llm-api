@@ -1,11 +1,14 @@
 """Define router containing model calling logic."""
 
+import time
+
 from fastapi import APIRouter, Depends, HTTPException, status
+from loguru import logger
 from pydantic import BaseModel
 
 from llm_api.backends.bedrock import BedrockCaller, BedrockModelCallError
 from llm_api.backends.openai import OpenaiCaller, OpenaiModelCallError
-from llm_api.config import Settings, get_settings
+from llm_api.config import BedrockModel, Settings, get_settings
 
 router = APIRouter()
 
@@ -68,12 +71,15 @@ async def call_model_openai(
     Returns:
         _type_: _description_
     """
+    start_time = time.time()
     caller = OpenaiCaller(settings)
 
     prompt_template = OpenaiCaller.generate_openai_prompt()
     try:
         model_response = await caller.call_model(prompt_template, request_body.user_search)
         model_response.update({"user_search": request_body.user_search})
+        end_time = time.time()
+        logger.info(f"GPT4: {end_time - start_time}s")
         return model_response  # noqa: TRY300
     except OpenaiModelCallError as model_call_error:
         raise ModelCallingError(
@@ -88,9 +94,7 @@ async def call_model_bedrock(
     settings: Settings = Depends(get_settings),  # noqa: B008
 ) -> dict:
     """
-    Call a Bedrock language model with the provided user search as prompt input.
-
-    Currently tested with Claude2 from Anthropic.
+    Call the Claude v2 Large Language Model via AWS Bedrock with a user search as prompt input.
 
     Args:
         request_body (InputDataSpec): Request body for post requests, containing user search.
@@ -104,12 +108,54 @@ async def call_model_bedrock(
     Returns:
         _type_: _description_
     """
+    start_time = time.time()
     caller = BedrockCaller(settings)
 
     prompt_template = BedrockCaller.generate_prompt()
     try:
         model_response = await caller.call_model(prompt_template, request_body.user_search)
         model_response.update({"user_search": request_body.user_search})
+        end_time = time.time()
+        logger.info(f"Claude 2: {end_time - start_time}s")
+        return model_response  # noqa: TRY300
+    except BedrockModelCallError as model_call_error:
+        raise ModelCallingError(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Error calling model. {model_call_error}",
+        ) from model_call_error
+
+
+@router.post("/call_model_bedrock_instant")
+async def call_model_bedrock_instant(
+    request_body: InputDataSpec,
+    settings: Settings = Depends(get_settings),  # noqa: B008
+) -> dict:
+    """
+    Call the Claude Instant v1.2 Large Language Model via AWS Bedrock with a user search.
+
+    Args:
+        request_body (InputDataSpec): Request body for post requests, containing user search.
+        settings (settings): Injected settings object to provide API keys and model names.
+            Is fetched from server-side.
+
+    Raises:
+        ModelCallingError: HTTP status code raised in the case of a bad model call, without
+            having the API fall over.
+
+    Returns:
+        _type_: _description_
+    """
+    start_time = time.time()
+    caller = BedrockCaller(settings)
+
+    prompt_template = BedrockCaller.generate_prompt()
+    try:
+        model_response = await caller.call_model(
+            prompt_template, request_body.user_search, alternative_model=BedrockModel.CLAUDE_INSTANT
+        )
+        model_response.update({"user_search": request_body.user_search})
+        end_time = time.time()
+        logger.info(f"Claude instant v1.2 {end_time - start_time}s")
         return model_response  # noqa: TRY300
     except BedrockModelCallError as model_call_error:
         raise ModelCallingError(

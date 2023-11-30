@@ -16,6 +16,7 @@ class BedrockModel(StrEnum):
     """Define possible Bedrock models."""
 
     CLAUDE = "anthropic.claude-v2"
+    CLAUDE_INSTANT = "anthropic.claude-instant-v1"
 
 
 class Settings(BaseSettings):

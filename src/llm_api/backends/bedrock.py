@@ -9,7 +9,7 @@ from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
 from langchain.schema.exceptions import LangChainException
 from langchain.schema.messages import SystemMessage
 
-from llm_api.config import Settings
+from llm_api.config import BedrockModel, Settings
 
 
 class BedrockModelCallError(Exception):
@@ -28,7 +28,7 @@ class BedrockCaller:
         """
         self.settings = settings
         self.boto3_client = self.get_boto3_client()
-        self.client = self.get_client()
+        self.client = self.get_client(self.settings.aws_bedrock_model_id)
 
     def get_boto3_client(self) -> Any:  # noqa: ANN401
         """
@@ -44,7 +44,7 @@ class BedrockCaller:
             service_name="bedrock-runtime",
         )
 
-    def get_client(self) -> Bedrock:
+    def get_client(self, bedrock_model_id: BedrockModel) -> Bedrock:
         """
         Retrieve LangChain client to call Bedrock models.
 
@@ -53,7 +53,7 @@ class BedrockCaller:
         """
         return Bedrock(
             client=self.boto3_client,
-            model_id=self.settings.aws_bedrock_model_id,
+            model_id=bedrock_model_id,
             model_kwargs={
                 "max_tokens_to_sample": 4096,
                 "temperature": 0.5,
@@ -135,7 +135,10 @@ class BedrockCaller:
         )
 
     async def call_model(
-        self, prompt_template: ChatPromptTemplate, user_search: str
+        self,
+        prompt_template: ChatPromptTemplate,
+        user_search: str,
+        alternative_model: BedrockModel | None = None,
     ) -> dict[str, str]:
         """
         Call the external Bedrock model specified with a defined prompt via LangChain.
@@ -144,6 +147,7 @@ class BedrockCaller:
             prompt_template (ChatPromptTemplate): LangChain ChatPromptTemplate
                 containing system instructions and any example formatting required.
             user_search (str): User's search as a string.
+            alternative_model: Alternative model to use if not using the default model.
 
         Raises:
             BedrockModelCallError: Index error due to unexpected response format
@@ -155,6 +159,9 @@ class BedrockCaller:
             dict[str, str]: Model JSON response as a dictionary.
         """
         try:
+            if alternative_model:
+                self.client = self.get_client(alternative_model)
+
             self.chain = prompt_template | self.client
             model_response = await self.chain.ainvoke({"text": user_search})
 

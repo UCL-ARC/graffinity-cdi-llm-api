@@ -74,7 +74,9 @@ class OpenaiCaller:
                     Try to find at least 5 relevant entities in each case, but no \
                     more than 10. Try to keep entities specific to the search. \
                     If you are unsure whether an entity is connected to the search, \
-                    do not include it.".split()
+                    do not include it. Also provide the wikipedia URL for each entity \
+                    you identify. If you are unsure if the URL is valid, do not include \
+                    a URL in your response.".split()
                     ),
                 ),
                 (
@@ -97,7 +99,7 @@ class OpenaiCaller:
                     'connections': [\
                     {{'from': 'uri'\
                     'to': 'uri'\
-                    'label': 'label describing entity-entity relationship\
+                    'description': 'short paragraph describing entity-entity relationship\
                     }}]\
                     }} \
             ```",
