@@ -66,7 +66,7 @@ class BedrockCaller:
     @staticmethod
     def generate_prompt() -> ChatPromptTemplate:
         """
-        Generate a prompt from user input to send to  models.
+        Generate a prompt from user input to send to models.
 
         The prompt includes `system` and `user` roles to define expected
         input and output formats.
