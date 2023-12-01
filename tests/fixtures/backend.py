@@ -1,7 +1,7 @@
 """Define fixtures for model calling tests"""
 import pytest
 
-from llm_api.config import Settings
+from llm_api.config import BedrockModel, GPTModel, Settings
 
 
 @pytest.fixture()
@@ -11,4 +11,10 @@ def mock_openai_client(mocker):
 
 @pytest.fixture()
 def mock_settings():
-    return Settings(openai_api_key="test_fixture_key", llm_name="test-fixture-model")
+    return Settings(
+        openai_api_key="test_fixture_key",
+        openai_llm_name=GPTModel.GPT4,
+        aws_access_key_id="dummy-access-id",
+        aws_secret_access_key="dummy-secret-key",
+        aws_bedrock_model_id=BedrockModel.CLAUDE,
+    )

@@ -1,12 +1,9 @@
-import asyncio
 import json
 
 import openai
 import pytest
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema.messages import AIMessage, HumanMessage
-from openai.types.chat.chat_completion import ChatCompletion, Choice
-from openai.types.chat.chat_completion_message import ChatCompletionMessage
 
 from llm_api.backends.openai import OpenaiCaller, OpenaiModelCallError
 
@@ -118,7 +115,6 @@ async def test_call_model_failure_api_connection_error(mocker, mock_settings):
 @pytest.mark.asyncio
 async def test_call_model_failure_rate_limit_error(mocker, mock_settings):
     caller = OpenaiCaller(mock_settings)
-    test_model = "my-test-gpt-model"
 
     mocked_client_call = mocker.patch(
         "langchain.schema.runnable.base.RunnableSequence.ainvoke"

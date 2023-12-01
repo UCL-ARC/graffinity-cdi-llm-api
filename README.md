@@ -85,14 +85,17 @@ pip install -e .
 
 ### Setting up environment variables
 
-This is a crucial step in running the application and should not be skipped! We use [Pydantic settings management](https://docs.pydantic.dev/latest/concepts/pydantic_settings/#environment-variable-names) to configure and verify settings such as API keys, LLM model choice and, when running via Docker Compose, port choice. Pydantic will preferentially set the variables defined in [config.py](src/llm_api/config.py#L7) from existing environment variables, before reading from a `.env` file in the root directory of the repository. An example `.env.example` file is provided showing the correct naming scheme for all required settings variables, with a prefix defined in [config.py](src/llm_api/config.py#L13).
+This is a crucial step in running the application and should not be skipped! We use [Pydantic settings management](https://docs.pydantic.dev/latest/concepts/pydantic_settings/#environment-variable-names) to configure and verify settings such as API keys, LLM model choice and, when running via Docker Compose, port choice. Pydantic will preferentially set the variables defined in [config.py](src/llm_api/config.py#L7) from existing environment variables, before reading from a `.env` file in the root directory of the repository. An example `.env.example` file is provided showing the correct naming scheme for all required settings variables, with a prefix defined in [config.py](src/llm_api/config.py#L13). Model names are defined as `StrEnums` to show developers the possible values each variable may take.
 
 Before running the application (either locally or in a container), rename `.env.example` to `.env` and provide a value for each variable. Particular attention should be paid to API keys and model names.
 
 A description of each variable is provided below:
 
 - `LLM_API_OPENAI_API_KEY` is **your** OpenAI API key. You must have completed billing details and preloaded credit to your account before models are callable.
-- `LLM_API_LLM_NAME` is set with a prefilled value in `.env.example` and is the recommended OpenAI model for use.
+- `LLM_API_OPENAI_LLM_NAME` is set with a prefilled value in `.env.example` and is the recommended OpenAI model for use.
+- `LLM_API_AWS_ACCESS_KEY_ID` is the Access Key ID from an AWS account with the Allow permission set on the `bedrock:InvokeModel` action on the resource `arn:aws:bedrock:*::foundation-model/*`.
+- `LLM_API_AWS_SECRET_ACCESS_KEY` is the corresponding secret key to the above Access Key ID.
+- `LLM_API_AWS_BEDROCK_MODEL_ID` is the bedrock model ID string. As a default, this is set to `anthropic.claude-v2`.
 - `API_PORT` is set to 9000 as a default. Feel free to change this as required.
 
 ### Running Locally
@@ -183,6 +186,16 @@ To make explicit some of the potentially implicit:
 - Function arguments and return types will be annotated, with type checking via [mypy](https://mypy.readthedocs.io/en/stable/)
 - We will use [docstrings](https://peps.python.org/pep-0257/) to annotate classes, class methods and functions
   - If you use Visual Studio Code, [autoDocstring](https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring) is recommended to speed this along.
+
+### Secrets detection
+
+We use a [secret detection pre-commit hook](https://github.com/Yelp/detect-secrets) to ensure that no passwords, API keys or similarly sensitive credentials are committed to the repository. If you add in some fake credentials (for testing purposes or similar), please update the `.secrets.baseline` file in order for CI checks on any resulting pull requests to pass. You can update this file by running
+
+```bash
+detect-secrets scan > .secrets.baseline
+```
+
+from the root directory of the repository. The `detect-secrets` dependency is installed via `pip` if you select the `dev` optional dependencies.
 
 ### General GitHub workflow
 
