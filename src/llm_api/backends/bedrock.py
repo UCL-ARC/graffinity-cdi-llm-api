@@ -61,6 +61,7 @@ class BedrockCaller:
                 "top_p": 1,
                 "stop_sequences": ["\n\nHuman:"],
             },
+            streaming=True,
         )
 
     @staticmethod
