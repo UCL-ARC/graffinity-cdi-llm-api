@@ -180,3 +180,51 @@ class BedrockCaller:
         except LangChainException as langchain_error:
             message = f"Error sending prompt to LLM. {langchain_error}"
             raise BedrockModelCallError(message) from langchain_error
+
+    def call_model_sync(
+        self,
+        prompt_template: ChatPromptTemplate,
+        user_search: str,
+        alternative_model: BedrockModel | None = None,
+    ) -> dict[str, str]:
+        """
+        Call the external Bedrock model specified with a defined prompt via LangChain.
+
+        Do not perform this call asynchronously.
+
+        Args:
+            prompt_template (ChatPromptTemplate): LangChain ChatPromptTemplate
+                containing system instructions and any example formatting required.
+            user_search (str): User's search as a string.
+            alternative_model: Alternative model to use if not using the default model.
+
+        Raises:
+            BedrockModelCallError: Index error due to unexpected response format
+            BedrockModelCallError: JSONDecode error due to unexpected response format
+            BedrockModelCallError: General LangChain exception
+
+
+        Returns:
+            dict[str, str]: Model JSON response as a dictionary.
+        """
+        try:
+            if alternative_model:
+                self.client = self.get_client(alternative_model)
+
+            self.chain = prompt_template | self.client
+            model_response = self.chain.invoke({"text": user_search})
+
+            try:
+                return json.loads(model_response.split("```")[1].strip("json"))
+            except IndexError as unexpected_response_error:
+                message = f"Unable to parse model output as expected. {unexpected_response_error}"
+                raise BedrockModelCallError(message) from unexpected_response_error
+            except JSONDecodeError as json_error:
+                message = f"Error decoding model output. {json_error}"
+                raise BedrockModelCallError(message) from json_error
+        except ValueError as bedrock_model_call_error:
+            message = f"Error calling model. {bedrock_model_call_error}"
+            raise BedrockModelCallError(message) from bedrock_model_call_error
+        except LangChainException as langchain_error:
+            message = f"Error sending prompt to LLM. {langchain_error}"
+            raise BedrockModelCallError(message) from langchain_error
