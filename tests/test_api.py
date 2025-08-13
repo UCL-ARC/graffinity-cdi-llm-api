@@ -2,7 +2,6 @@
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from httpx import AsyncClient, ASGITransport
 
 from llm_api.backends.bedrock import BedrockCaller, BedrockModelCallError
 from llm_api.backends.openai import OpenaiCaller, OpenaiModelCallError
