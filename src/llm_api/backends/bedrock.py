@@ -4,10 +4,10 @@ from json.decoder import JSONDecodeError
 from typing import Any
 
 import boto3
-from langchain.llms import Bedrock
 from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
 from langchain.schema.exceptions import LangChainException
 from langchain.schema.messages import SystemMessage
+from langchain_aws import BedrockLLM as Bedrock
 
 from llm_api.config import BedrockModel, Settings
 

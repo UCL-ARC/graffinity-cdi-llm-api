@@ -2,9 +2,9 @@
 import json
 
 import openai
-from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema.exceptions import LangChainException
+from langchain_openai import ChatOpenAI
 
 from llm_api.config import Settings
 

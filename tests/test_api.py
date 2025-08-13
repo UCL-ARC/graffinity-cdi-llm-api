@@ -2,33 +2,13 @@
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
-from pydantic import SecretStr
-from pydantic_settings import BaseSettings
+from httpx import AsyncClient, ASGITransport
 
 from llm_api.backends.bedrock import BedrockCaller, BedrockModelCallError
 from llm_api.backends.openai import OpenaiCaller, OpenaiModelCallError
-from llm_api.config import BedrockModel, GPTModel, get_settings
 from llm_api.main import app
 
 sync_client = TestClient(app)
-
-
-class TestSettings(BaseSettings):
-
-    openai_api_key: SecretStr = SecretStr("test_fixture_key")
-    openai_llm_name: GPTModel = GPTModel.GPT4
-    aws_access_key_id: str = "dummy-access-id"
-    aws_secret_access_key: SecretStr = SecretStr("dummy-secret-key")
-    aws_bedrock_model_id: BedrockModel = BedrockModel.CLAUDE
-
-
-def get_test_settings():
-    return TestSettings()
-
-
-app.dependency_overrides[get_settings] = get_test_settings
-
 
 def test_ping() -> None:
     """Test basic API functionality."""
@@ -38,7 +18,7 @@ def test_ping() -> None:
 
 
 @pytest.mark.asyncio
-async def test_call_model_openai(mocker):
+async def test_call_model_openai(mocker, test_async_client):
 
     model_output = {
         "entities": [
@@ -54,7 +34,7 @@ async def test_call_model_openai(mocker):
     }
 
     mocker.patch.object(OpenaiCaller, "call_model", return_value=model_output.copy())
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with test_async_client as ac:
         payload = {"user_search": "imagery and symbolism in macbeth"}
         response = await ac.post("/call_model_openai", json=payload)
 
@@ -64,10 +44,10 @@ async def test_call_model_openai(mocker):
 
 
 @pytest.mark.asyncio
-async def test_call_model_openai_failure(mocker):
+async def test_call_model_openai_failure(mocker, test_async_client):
 
     mocker.patch.object(OpenaiCaller, "call_model", side_effect=OpenaiModelCallError)
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with test_async_client as ac:
         payload = {"user_search": "imagery and symbolism in macbeth"}
         response = await ac.post("/call_model_openai", json=payload)
 
@@ -75,7 +55,7 @@ async def test_call_model_openai_failure(mocker):
 
 
 @pytest.mark.asyncio
-async def test_call_model_bedrock(mocker):
+async def test_call_model_bedrock(mocker, test_async_client):
 
     model_output = {
         "entities": [
@@ -90,7 +70,7 @@ async def test_call_model_bedrock(mocker):
         ],
     }
     mocker.patch.object(BedrockCaller, "call_model", return_value=model_output.copy())
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with test_async_client as ac:
         payload = {"user_search": "imagery and symbolism in macbeth"}
         response = await ac.post("/call_model_bedrock", json=payload)
 
@@ -100,10 +80,10 @@ async def test_call_model_bedrock(mocker):
 
 
 @pytest.mark.asyncio
-async def test_call_model_bedrock_failure(mocker):
+async def test_call_model_bedrock_failure(mocker, test_async_client):
 
     mocker.patch.object(BedrockCaller, "call_model", side_effect=BedrockModelCallError)
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with test_async_client as ac:
         payload = {"user_search": "imagery and symbolism in macbeth"}
         response = await ac.post("/call_model_bedrock", json=payload)
 
